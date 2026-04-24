@@ -28,6 +28,7 @@ async fn main() -> std::io::Result<()> {
 
         //wrap the stream in the hyper tokio io ada
         let io = TokioIo::new(stream);
+        println!("the io is : {:#?}", io);
 
         let mut is_error = false;
 
