@@ -2,9 +2,9 @@
 use http_body_util::Full;
 use hyper::body::Bytes;
 use hyper::{Request, Response};
+use hyper_util::server::conn::auto;
 use std::convert::Infallible;
-use std::future;
-use tokio::net::TcpListener;
+use tokio::{net::TcpListener, select};
 
 // work would be done in layers
 
@@ -12,9 +12,16 @@ use tokio::net::TcpListener;
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
     let address = "127.0.0.1:8080";
-    let listner = tokio::spawn(TcpListener::bind(address));
-    let val = listner.await?;
-    println!("the server is like : {:#?}", val.unwrap());
+
+    //ech connnection is in task
+    let listener = tokio::spawn(TcpListener::bind(address));
+    for (_, stream) in listener.await?.iter().enumerate() {
+        println!("the stream is : {:#?}", stream);
+
+        //wrap the stream in the hyper tokio io adapter
+    }
+
+    //shutdown the connection
     Ok(())
 }
 
