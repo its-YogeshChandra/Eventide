@@ -8,8 +8,7 @@ use hyper_util::{rt::TokioIo, server::conn::auto};
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use tokio::{net::TcpListener, select};
-
-// work would be done in layers
+use tokio_util::sync::CancellationToken;
 
 //bind tcp listener to the address
 #[tokio::main]
@@ -32,9 +31,20 @@ async fn main() -> std::io::Result<()> {
 
         //spawn tokio for mutliple connection concurrently
         tokio::task::spawn(async move {
-            if let Err(e) = auto::Builder::new(TokioExecutor::new())
+           let conn  =  auto::Builder::new(TokioExecutor::new())
                 .serve_connection(io, service_fn(dispatcher))
-                .await
+                .await;
+            tokio::pin!(conn);
+            let child_token = CancellationToken::new();
+
+            loop {
+                tokio::select! {
+                    result = &mut conn => {
+                        break;
+                    }
+                    _ = child_token.
+                }
+            }
             {
                 is_error = true;
                 eprintln!("Error serving connection: {}", e)
